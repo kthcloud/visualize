@@ -202,7 +202,7 @@ function App() {
   }, 1000);
 
   return (
-    <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-slate-50 p-5">
+    <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-black p-5">
       <div className="col-span-4 p-5 flex flex-row justify-around max-h-40">
         <img src={reactLogo} className="w-96" />
       </div>
