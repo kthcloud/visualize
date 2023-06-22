@@ -203,7 +203,7 @@ function App() {
 
   return (
     <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-black p-5">
-      <div className="col-span-4 p-5 flex flex-row justify-around max-h-40">
+      <div className="col-span-4 p-5 flex flex-row justify-around max-h-40 bg-[#e1f3fc] rounded-lg">
         <img src={reactLogo} className="w-96" />
       </div>
 
@@ -404,6 +404,13 @@ function App() {
           }}
         />
       </Card>
+
+      <div className="col-span-3 bg-slate-200 rounded-md border-8 border-slate-300 p-5 flex flex-col justify-evenly">
+        <span className="text-9xl font-mono">Deploy now!</span>
+        <span className="text-5xl text-underline">
+          Go to <u>cloud.cbh.kth.se</u>
+        </span>
+      </div>
     </div>
   );
 }
