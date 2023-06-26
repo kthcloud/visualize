@@ -1,18 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import reactLogo from "./assets/kthcloud.svg";
 import { Card } from "./components/Card";
 import useInterval from "./hooks/useInterval";
 import Chart from "react-apexcharts";
 import Iconify from "./components/Iconify";
+import { getStatus } from "./api/visualize";
 
 function App() {
+  //Status
   const [statusData, setStatusData] = useState([]);
+  const [overviewData, _setOverviewData] = useState([]);
+  const [lastFetched, setLastFetched] = useState("");
+
+  // Capacities
   const [cpuCapacities, setCpuCapacities] = useState([]);
   const [ramCapacities, setRamCapacities] = useState([]);
   const [gpuCapacities, setGpuCapacities] = useState([]);
-  const [overviewData, _setOverviewData] = useState([]);
-  const [statusLock, setStatusLock] = useState(false);
-  const [capacitiesLock, setCapacitiesLock] = useState(false);
+
+  //Stats
+  const [podCount, setPodCount] = useState(0);
+
+  // Capacities
+  const [ram, setRam] = useState(0);
+  const [cpuCores, setCpuCores] = useState(0);
+  const [gpus, setGpus] = useState(0);
+
+  // Jobs
+  const [jobs, setJobs] = useState([]);
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -84,127 +98,79 @@ function App() {
     ]);
   };
 
-  const getStatusData = () => {
-    if (statusLock) return;
-    setStatusLock(true);
-    fetch(import.meta.env.VITE_API_URL + "/landing/v2/status?n=100", {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        let statusData = result[0].status.hosts.map((host) => {
-          const gpuTemp = host.gpu ? host.gpu.temp[0].main : null;
-          return {
-            name: host.name,
-            data: [
-              host.cpu.temp.main,
-              host.cpu.load.main,
-              host.ram.load.main,
-              gpuTemp,
-            ],
-          };
-        });
+  const getStatusData = async () => {
+    const status = await getStatus();
 
-        setStatusData(statusData);
-        setCpuCapacities(
-          result[0].status.hosts
-            .map((host) => {
-              return {
-                x: host.name,
-                y: host.cpu.load.cores.length,
-              };
-            })
-            .filter((host) => host.y > 0)
-        );
-        setOverviewData(result);
-        setStatusLock(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    let statusData = status.status[0].status.hosts.map((host) => {
+      const gpuTemp = host.gpu ? host.gpu.temp[0].main : null;
+      return {
+        name: host.name,
+        data: [
+          host.cpu.temp.main,
+          host.cpu.load.main,
+          host.ram.load.main,
+          gpuTemp,
+        ],
+      };
+    });
+
+    setStatusData(statusData);
+
+    let date = new Date(status.date);
+    setLastFetched(date.toLocaleString("sv-SE"));
+
+    setJobs(status.jobs);
+
+    setCpuCapacities(
+      status.status[0].status.hosts
+        .map((host) => {
+          return {
+            x: host.name,
+            y: host.cpu.load.cores.length,
+          };
+        })
+        .filter((host) => host.y > 0)
+    );
+    setOverviewData(status.status);
+
+    setPodCount(status.stats[0].stats.k8s.podCount);
+
+    setRam(status.capacities[0].capacities.ram.total);
+    setCpuCores(status.capacities[0].capacities.cpuCore.total);
+    setGpus(status.capacities[0].capacities.gpu.total);
+
+    setRamCapacities(
+      status.capacities[0].capacities.hosts
+        .map((host) => {
+          return {
+            x: host.name,
+            y: host.ram.total,
+          };
+        })
+        .filter((host) => host.y > 0)
+    );
+
+    setGpuCapacities(
+      status.capacities[0].capacities.hosts
+        .map((host) => {
+          return {
+            x: host.name,
+            y: host.gpu ? host.gpu.count : 0,
+          };
+        })
+        .filter((host) => host.y > 0)
+    );
   };
 
   useInterval(() => {
     getStatusData();
   }, 1000);
 
-  // Stats
-  const [podCount, setPodCount] = useState(0);
-
-  const getStats = () => {
-    fetch(import.meta.env.VITE_API_URL + "/landing/v2/stats?n=1", {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        setPodCount(result[0].stats.k8s.podCount);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(getStats, []);
-
-  // Capacities
-  const [ram, setRam] = useState(0);
-  const [cpuCores, setCpuCores] = useState(0);
-  const [gpus, setGpus] = useState(0);
-
-  const getCapacities = () => {
-    if (capacitiesLock) return;
-    setCapacitiesLock(true);
-    fetch(import.meta.env.VITE_API_URL + "/landing/v2/capacities?n=1", {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        setRam(result[0].capacities.ram.total);
-        setCpuCores(result[0].capacities.cpuCore.total);
-        setGpus(result[0].capacities.gpu.total);
-
-        setRamCapacities(
-          result[0].capacities.hosts
-            .map((host) => {
-              return {
-                x: host.name,
-                y: host.ram.total,
-              };
-            })
-            .filter((host) => host.y > 0)
-        );
-
-        setGpuCapacities(
-          result[0].capacities.hosts
-            .map((host) => {
-              return {
-                x: host.name,
-                y: host.gpu ? host.gpu.count : 0,
-              };
-            })
-            .filter((host) => host.y > 0)
-        );
-        setCapacitiesLock(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  useEffect(() => {
-    getCapacities();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useInterval(() => {
-    getCapacities();
-  }, 1000);
-
   return (
     <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-black p-5">
-      <div className="col-span-4 p-5 flex flex-row justify-around max-h-40 bg-[#e1f3fc] rounded-lg">
+      <div className="col-span-4 p-5 flex flex-row justify-around items-center max-h-40 bg-[#e1f3fc] rounded-lg">
         <img src={reactLogo} className="w-96" />
+        <b className="text-4xl text-mono">{lastFetched}</b>
       </div>
 
       <div className="flex flex-col gap-5 justify-between">
@@ -405,7 +371,24 @@ function App() {
         />
       </Card>
 
-      <div className="col-span-3 bg-slate-200 rounded-md border-8 border-slate-300 p-5 flex flex-col justify-evenly">
+      <Card>
+        <h1 className="text-xl font-mono mb-3">Latest events</h1>
+        <div className="flex flex-col">
+          {Array.isArray(jobs) &&
+            jobs.map((event) => (
+              <div className="flex flex-row justify-between items-center px-5">
+                <span className="text-sm font-mono mt-1">
+                  {event.args.name ?? "Private deployment"}
+                </span>
+                <span className="text-3xl font-mono mt-1">
+                  {new Date(event.finishedAt.$date).toLocaleTimeString("sv-SE")}
+                </span>
+              </div>
+            ))}
+        </div>
+      </Card>
+
+      <div className="col-span-2 bg-slate-200 rounded-md border-8 border-slate-300 p-5 flex flex-col justify-evenly">
         <span className="text-9xl font-mono">Deploy now!</span>
         <span className="text-5xl text-underline">
           Go to <u>cloud.cbh.kth.se</u>
