@@ -5,6 +5,7 @@ import useInterval from "./hooks/useInterval";
 import Chart from "react-apexcharts";
 import Iconify from "./components/Iconify";
 import { getStatus } from "./api/visualize";
+import { sentenceCase } from "change-case";
 
 function App() {
   //Status
@@ -27,6 +28,10 @@ function App() {
 
   // Jobs
   const [jobs, setJobs] = useState([]);
+
+  //Events
+  const [animation, setAnimation] = useState(false);
+  const [lastCreated, setLastCreated] = useState("0");
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -121,6 +126,14 @@ function App() {
 
     setJobs(status.jobs);
 
+    if (status.jobs[0].createdAt.$date > lastCreated) {
+      setAnimation(true);
+      setTimeout(() => {
+        setAnimation(false);
+      }, 5000);
+    }
+    setLastCreated(status.jobs[0].createdAt.$date);
+
     setCpuCapacities(
       status.status[0].status.hosts
         .map((host) => {
@@ -166,137 +179,152 @@ function App() {
     getStatusData();
   }, 1000);
 
+  const renderName = (event) => {
+    if (event.args.name) return event.args.name;
+    if (event.args.params && event.args.params.name)
+      return event.args.params.name;
+  };
+
+  const renderIcon = (event) => {
+    if (event.status === "completed") return "octicon:check-16";
+    if (event.status === "failed") return "octicon:x-16";
+    if (event.type.toLowerCase().includes("creat")) return "tabler:crane";
+    if (event.type.toLowerCase().includes("delet")) return "mdi:nuke";
+    if (event.type.toLowerCase().includes("gpu")) return "bi:gpu-card";
+    if (event.type.toLowerCase().includes("update"))
+      return "mingcute:tool-fill";
+  };
+
+  const abbrFix = (str) => {
+    return str
+      .replace("gpu", "GPU")
+      .replace("vm", "VM")
+      .replace("deployment", "Deployment");
+  };
+
   return (
     <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-black p-5">
       <div className="col-span-4 p-5 flex flex-row justify-around items-center max-h-40 bg-[#e1f3fc] rounded-lg">
-        <img src={reactLogo} className="w-96" />
-        <b className="text-4xl text-mono">{lastFetched}</b>
+        {!animation && <img src={reactLogo} className="w-96" />}
+        <b className="text-4xl text-mono">
+          {!animation
+            ? lastFetched
+            : jobs.length > 0
+            ? abbrFix("NEW JOB ALERT!!!1 " + sentenceCase(jobs[0].type))
+            : lastFetched}
+        </b>
       </div>
 
-      <div className="flex flex-col gap-5 justify-between">
-        <Card>
-          <div className="flex flex-row justify-between items-center px-5">
-            <Iconify icon="octicon:container-16" className="text-5xl mr-5" />
-            <span className="text-xl font-mono mt-1">
-              {podCount} Running containers
-            </span>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex flex-row justify-between items-center px-5">
-            <Iconify icon="bi:gpu-card" className="text-5xl mr-5" />
-            <span className="text-3xl font-mono mt-1">{gpus} GPUs</span>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex flex-row justify-between items-center px-5">
-            <Iconify icon="uil:processor" className="text-5xl mr-5" />
-            <span className="text-3xl font-mono mt-1">
-              {cpuCores} CPU cores
-            </span>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex flex-row justify-between items-center px-5">
-            <Iconify icon="bi:memory" className="text-5xl mr-5" />
-            <span className="text-3xl font-mono mt-1">{ram} GB of RAM</span>
-          </div>
-        </Card>
-      </div>
-      <Card>
-        <h1 className="text-xl font-mono mb-3">Server status</h1>
-        <Chart
-          type="heatmap"
-          series={statusData}
-          height="300px"
-          width="100%"
-          options={{
-            plotOptions: {
-              heatmap: {
-                colorScale: {
-                  ranges: [
-                    {
-                      from: 0,
-                      to: 10,
-                      color: "#128FD9",
-                    },
-                    {
-                      from: 10,
-                      to: 20,
-                      color: "#09986D",
-                    },
-                    {
-                      from: 20,
-                      to: 30,
-                      color: "#00A100",
-                      name: "high",
-                    },
-                    {
-                      from: 30,
-                      to: 40,
-                      color: "#40A600",
-                    },
-                    {
-                      from: 40,
-                      to: 50,
-                      color: "#80AA00",
-                    },
-                    {
-                      from: 50,
-                      to: 60,
-                      color: "#C0AE00",
-                    },
-                    {
-                      from: 60,
-                      to: 70,
-                      color: "#FFB200",
-                    },
-                    {
-                      from: 70,
-                      to: 80,
-                      color: "#FF7D21",
-                    },
-                    {
-                      from: 80,
-                      to: 90,
-                      color: "#FF6332",
-                    },
-                    {
-                      from: 90,
-                      to: 110,
-                      color: "#FF4842",
-                    },
-                  ],
+      {animation && (
+        <div className="col-span-3 row-span-2">
+          <img
+            src={"/animations/" + Math.floor(Math.random() * 48 + 1) + ".gif"}
+            className="w-full h-full"
+          />
+        </div>
+      )}
+
+      {!animation && (
+        <div className="flex flex-col gap-5 justify-between">
+          <Card>
+            <div className="flex flex-row justify-between items-center px-5">
+              <Iconify icon="octicon:container-16" className="text-5xl mr-5" />
+              <span className="text-xl font-mono mt-1">
+                {podCount} Running containers
+              </span>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex flex-row justify-between items-center px-5">
+              <Iconify icon="bi:gpu-card" className="text-5xl mr-5" />
+              <span className="text-3xl font-mono mt-1">{gpus} GPUs</span>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex flex-row justify-between items-center px-5">
+              <Iconify icon="uil:processor" className="text-5xl mr-5" />
+              <span className="text-3xl font-mono mt-1">
+                {cpuCores} CPU cores
+              </span>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex flex-row justify-between items-center px-5">
+              <Iconify icon="bi:memory" className="text-5xl mr-5" />
+              <span className="text-3xl font-mono mt-1">{ram} GB RAM</span>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {!animation && (
+        <div className="col-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-evenly">
+          <h1 className="text-xl font-mono mb-3">Load</h1>
+          <Chart
+            type="line"
+            series={overviewData}
+            options={{
+              xaxis: {
+                type: "datetime",
+
+                labels: {
+                  style: {
+                    fontFamily: "monospace",
+                    colors: "#fff",
+                  },
                 },
               },
-            },
-
-            xaxis: {
-              axisBorder: { show: false },
-              axisTicks: { show: false },
-            },
-            yaxis: {
-              labels: {
-                style: {
-                  fontFamily: "monospace",
+              yaxis: {
+                labels: {
+                  style: {
+                    fontFamily: "monospace",
+                    colors: "#fff",
+                  },
                 },
               },
-            },
-            tooltip: { enabled: false },
-            legend: { show: false },
-            dataLabels: {
-              position: "top",
-            },
-            labels: ["CPU °C", "CPU %", "Memory %", "GPU °C"],
-            chart: {
-              toolbar: { show: false },
-              zoom: { enabled: false },
-              animations: { enabled: false },
-            },
-          }}
-        />
-      </Card>
+              chart: {
+                toolbar: { show: false },
+                zoom: { enabled: false },
+                animations: { enabled: true },
+              },
+              markers: {
+                size: 0,
+              },
 
+              tooltip: {
+                enabled: true,
+              },
+              dataLabels: {
+                enabled: false,
+              },
+
+              legend: {
+                show: true,
+                floating: true,
+                horizontalAlign: "right",
+                onItemClick: {
+                  toggleDataSeries: false,
+                },
+                position: "top",
+                fontFamily: "monospace",
+                labels: {
+                  colors: "#fff",
+                },
+                offsetY: -5,
+                markers: {
+                  offsetX: -5,
+                },
+                itemMargin: {
+                  horizontal: 20,
+                },
+              },
+            }}
+            height="300px"
+            width="100%"
+          />
+        </div>
+      )}
+      {/* 
       <Card>
         <h1 className="text-xl font-mono mb-3">CPU capacities</h1>
         <Chart
@@ -319,11 +347,154 @@ function App() {
             },
           }}
         />
-      </Card>
-      {/* <div className="row-span-2 bg-slate-200 rounded-md border-8 border-slate-300 p-5">
-        <h1>oib</h1>
-      </div> */}
-      <Card>
+      </Card> */}
+
+      <div className="row-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 overflow-hidden">
+        <h1 className="text-xl font-mono mb-3">Latest events</h1>
+        <div className="flex flex-col justify-between gap-5">
+          {Array.isArray(jobs) &&
+            jobs.map((event, index) => (
+              <div
+                className={
+                  "flex items-center px-4 py-2  rounded-md" +
+                  (event.status === "completed"
+                    ? " bg-slate-700 opacity-100"
+                    : " bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-pulse")
+                }
+                key={index}
+              >
+                <Iconify
+                  icon={renderIcon(event)}
+                  className={
+                    "text-2xl mr-5" +
+                    (event.status === "completed" ? " text-green-500" : "") +
+                    (event.status !== "completed" ? " animate-ping" : "")
+                  }
+                />
+
+                <div className="flex flex-col justify-between items-start">
+                  <span className="text-sm font-mono mt-1">
+                    {renderName(event)}
+                  </span>
+
+                  <span className="text-sm font-mono mt-1">
+                    {new Date(event.createdAt.$date).toLocaleTimeString(
+                      "sv-SE"
+                    )}
+                  </span>
+                  <span className="text-sm font-mono mt-1">
+                    {abbrFix(sentenceCase(event.type))}
+                  </span>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {!animation && (
+        <Card>
+          <h1 className="text-xl font-mono mb-3">Server status</h1>
+          <Chart
+            type="heatmap"
+            series={statusData}
+            height="300px"
+            width="100%"
+            options={{
+              plotOptions: {
+                heatmap: {
+                  colorScale: {
+                    ranges: [
+                      {
+                        from: 0,
+                        to: 10,
+                        color: "#128FD9",
+                      },
+                      {
+                        from: 10,
+                        to: 20,
+                        color: "#09986D",
+                      },
+                      {
+                        from: 20,
+                        to: 30,
+                        color: "#00A100",
+                        name: "high",
+                      },
+                      {
+                        from: 30,
+                        to: 40,
+                        color: "#40A600",
+                      },
+                      {
+                        from: 40,
+                        to: 50,
+                        color: "#80AA00",
+                      },
+                      {
+                        from: 50,
+                        to: 60,
+                        color: "#C0AE00",
+                      },
+                      {
+                        from: 60,
+                        to: 70,
+                        color: "#FFB200",
+                      },
+                      {
+                        from: 70,
+                        to: 80,
+                        color: "#FF7D21",
+                      },
+                      {
+                        from: 80,
+                        to: 90,
+                        color: "#FF6332",
+                      },
+                      {
+                        from: 90,
+                        to: 110,
+                        color: "#FF4842",
+                      },
+                    ],
+                  },
+                },
+              },
+
+              xaxis: {
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: {
+                  style: {
+                    fontFamily: "monospace",
+                    colors: "#fff",
+                  },
+                },
+              },
+              yaxis: {
+                labels: {
+                  style: {
+                    fontFamily: "monospace",
+                    colors: "#fff",
+                  },
+                },
+              },
+              tooltip: { enabled: false },
+              legend: { show: false },
+              dataLabels: {
+                position: "top",
+              },
+              labels: ["CPU °C", "CPU %", "Memory %", "GPU °C"],
+              chart: {
+                toolbar: { show: false },
+                zoom: { enabled: false },
+                animations: { enabled: false },
+              },
+            }}
+          />
+        </Card>
+      )}
+
+      {/* <Card>
         <h1 className="text-xl font-mono text-sky-950 mb-3">RAM capacities</h1>
         <Chart
           type="treemap"
@@ -369,31 +540,16 @@ function App() {
             },
           }}
         />
-      </Card>
+      </Card> */}
 
-      <Card>
-        <h1 className="text-xl font-mono mb-3">Latest events</h1>
-        <div className="flex flex-col">
-          {Array.isArray(jobs) &&
-            jobs.map((event) => (
-              <div className="flex flex-row justify-between items-center px-5">
-                <span className="text-sm font-mono mt-1">
-                  {event.args.name ?? "Private deployment"}
-                </span>
-                <span className="text-3xl font-mono mt-1">
-                  {new Date(event.finishedAt.$date).toLocaleTimeString("sv-SE")}
-                </span>
-              </div>
-            ))}
+      {!animation && (
+        <div className="col-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-evenly">
+          <span className="text-9xl font-mono">Deploy now!</span>
+          <span className="text-5xl text-underline">
+            Go to <u>cloud.cbh.kth.se</u>
+          </span>
         </div>
-      </Card>
-
-      <div className="col-span-2 bg-slate-200 rounded-md border-8 border-slate-300 p-5 flex flex-col justify-evenly">
-        <span className="text-9xl font-mono">Deploy now!</span>
-        <span className="text-5xl text-underline">
-          Go to <u>cloud.cbh.kth.se</u>
-        </span>
-      </div>
+      )}
     </div>
   );
 }
