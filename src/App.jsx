@@ -31,6 +31,7 @@ function App() {
 
   //Events
   const [animation, setAnimation] = useState(false);
+  const [animationNumber, setAnimationNumber] = useState(1);
   const [lastCreated, setLastCreated] = useState("0");
 
   const setOverviewData = (data) => {
@@ -127,6 +128,7 @@ function App() {
     setJobs(status.jobs);
 
     if (status.jobs[0].createdAt.$date > lastCreated) {
+      setAnimationNumber(Math.floor(Math.random() * 48 + 1));
       setAnimation(true);
       setTimeout(() => {
         setAnimation(false);
@@ -218,7 +220,7 @@ function App() {
       {animation && (
         <div className="col-span-3 row-span-2">
           <img
-            src={"/animations/" + Math.floor(Math.random() * 48 + 1) + ".gif"}
+            src={"/animations/" + animationNumber + ".gif"}
             className="w-full h-full"
           />
         </div>
