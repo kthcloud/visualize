@@ -130,6 +130,8 @@ function App() {
     if (status.jobs[0].createdAt.$date > lastCreated) {
       setAnimationNumber(Math.floor(Math.random() * 48 + 1));
       setAnimation(true);
+      let player = document.getElementById("player");
+      player.play();
       setTimeout(() => {
         setAnimation(false);
       }, 5000);
@@ -215,6 +217,9 @@ function App() {
             ? abbrFix("NEW JOB ALERT!!!1 " + sentenceCase(jobs[0].type))
             : lastFetched}
         </b>
+        <audio id="player">
+            <source src="/flute.mp3" type="audio/mp3"/>
+        </audio>
       </div>
 
       {animation && (
