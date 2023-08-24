@@ -6,6 +6,7 @@ import Chart from "react-apexcharts";
 import Iconify from "./components/Iconify";
 import { getStatus } from "./api/visualize";
 import { sentenceCase } from "change-case";
+import { getNextCallToAction } from "./api/llama";
 
 function App() {
   //Status
@@ -33,6 +34,9 @@ function App() {
   const [animation, setAnimation] = useState(false);
   const [animationNumber, setAnimationNumber] = useState(1);
   const [lastCreated, setLastCreated] = useState("0");
+
+  // LLama Call to action
+  const [callToAction, setCallToAction] = useState("Deploy now!");
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -183,6 +187,13 @@ function App() {
     getStatusData();
   }, 1000);
 
+  useInterval(async () => {
+    const call = await getNextCallToAction();
+    if (call) {
+      setCallToAction(call);
+    }
+  }, 5000);
+
   const renderName = (event) => {
     if (event.args.name) return event.args.name;
     if (event.args.params && event.args.params.name)
@@ -218,7 +229,7 @@ function App() {
             : lastFetched}
         </b>
         <audio id="player">
-            <source src="/swoosh.mp3" type="audio/mp3"/>
+          <source src="/swoosh.mp3" type="audio/mp3" />
         </audio>
       </div>
 
@@ -551,7 +562,7 @@ function App() {
 
       {!animation && (
         <div className="col-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-evenly">
-          <span className="text-9xl font-mono">Deploy now!</span>
+          <span className="text-7xl font-mono">{callToAction}</span>
           <span className="text-5xl text-underline">
             Go to <u>cloud.cbh.kth.se</u>
           </span>
