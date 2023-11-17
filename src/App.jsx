@@ -1,5 +1,6 @@
 import { useState } from "react";
 import reactLogo from "./assets/kthcloud.svg";
+import qr from "./assets/qr.png";
 import { Card } from "./components/Card";
 import useInterval from "./hooks/useInterval";
 import Chart from "react-apexcharts";
@@ -7,6 +8,7 @@ import Iconify from "./components/Iconify";
 import { getStatus } from "./api/visualize";
 import { sentenceCase } from "change-case";
 import { getNextCallToAction } from "./api/llama";
+import { getUsers } from "./api/prometheus";
 
 function App() {
   //Status
@@ -37,6 +39,9 @@ function App() {
 
   // LLama Call to action
   const [callToAction, setCallToAction] = useState("Deploy now!");
+
+  // users
+  const [users, setUsers] = useState(0);
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -188,6 +193,10 @@ function App() {
   }, 1000);
 
   useInterval(async () => {
+    setUsers(await getUsers());
+  }, 1000);
+
+  useInterval(async () => {
     const call = await getNextCallToAction();
     if (call) {
       setCallToAction(call);
@@ -247,8 +256,8 @@ function App() {
           <Card>
             <div className="flex flex-row justify-between items-center px-5">
               <Iconify icon="octicon:container-16" className="text-5xl mr-5" />
-              <span className="text-xl font-mono mt-1">
-                {podCount} Running containers
+              <span className="text-3xl font-mono mt-1">
+                {podCount} Containers
               </span>
             </div>
           </Card>
@@ -342,30 +351,6 @@ function App() {
           />
         </div>
       )}
-      {/* 
-      <Card>
-        <h1 className="text-xl font-mono mb-3">CPU capacities</h1>
-        <Chart
-          type="treemap"
-          series={[{ data: cpuCapacities }]}
-          height="300px"
-          width="100%"
-          options={{
-            plotOptions: { treemap: {} },
-            tooltip: { enabled: false },
-            legend: { show: false },
-            colors: ["#0284c7"],
-            dataLabels: {
-              position: "top",
-            },
-            chart: {
-              toolbar: { show: false },
-              zoom: { enabled: false },
-              animations: { enabled: false },
-            },
-          }}
-        />
-      </Card> */}
 
       <div className="row-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 overflow-hidden">
         <h1 className="text-xl font-mono mb-3">Latest events</h1>
@@ -512,58 +497,21 @@ function App() {
         </Card>
       )}
 
-      {/* <Card>
-        <h1 className="text-xl font-mono text-sky-950 mb-3">RAM capacities</h1>
-        <Chart
-          type="treemap"
-          series={[{ data: ramCapacities }]}
-          height="300px"
-          width="100%"
-          options={{
-            plotOptions: { treemap: {} },
-            tooltip: { enabled: false },
-            legend: { show: false },
-            colors: ["#0284c7"],
-            dataLabels: {
-              position: "top",
-            },
-            chart: {
-              toolbar: { show: false },
-              zoom: { enabled: false },
-              animations: { enabled: false },
-            },
-          }}
-        />
-      </Card>
+      {!animation && (
+        <div className="bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-between py-10 pt-20">
+          <span className="text-4xl animate-bounce">{callToAction}</span>
 
-      <Card>
-        <h1 className="text-xl font-mono mb-3">GPU capacities</h1>
-        <Chart
-          type="treemap"
-          series={[{ data: gpuCapacities }]}
-          height="300px"
-          width="100%"
-          options={{
-            plotOptions: { treemap: {} },
-            tooltip: { enabled: false },
-            legend: { show: false },
-            colors: ["#0284c7"],
-            dataLabels: {
-              position: "top",
-            },
-            chart: {
-              toolbar: { show: false },
-              zoom: { enabled: false },
-              animations: { enabled: false },
-            },
-          }}
-        />
-      </Card> */}
+          <span className="text-2xl">
+            <span className="font-mono text-4xl font-bold">{users}</span> <br />
+            users already deploying on kthcloud
+          </span>
+        </div>
+      )}
 
       {!animation && (
-        <div className="col-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-evenly">
-          <span className="text-7xl font-mono">{callToAction}</span>
-          <span className="text-5xl text-underline">
+        <div className="bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-between items-center py-10">
+          <img src={qr} className="w-60" />
+          <span className="text-4xl text-underline">
             Go to <u>cloud.cbh.kth.se</u>
           </span>
         </div>
