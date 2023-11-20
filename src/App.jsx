@@ -201,7 +201,7 @@ function App() {
     if (call) {
       setCallToAction(call);
     }
-  }, 5000);
+  }, 2000);
 
   const renderName = (event) => {
     if (event.args.name) return event.args.name;
