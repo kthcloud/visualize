@@ -13,7 +13,7 @@ export const getNextCallToAction = async () => {
       repeat_last_n: 256,
       repeat_penalty: 1.18,
       stop: ["</s>", "llama:", "User:"],
-      temperature: 1.4,
+      temperature: 10,
       tfs_z: 1,
       top_k: 40,
       top_p: 0.5,
