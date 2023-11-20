@@ -18,6 +18,7 @@ export const getNextCallToAction = async () => {
       top_k: 40,
       top_p: 0.5,
       typical_p: 1,
+      seed: Math.random()*1000
     });
 
     const response = await fetch(url, { method: "POST", body: body });
