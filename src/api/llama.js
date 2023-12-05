@@ -7,17 +7,7 @@ export const getNextCallToAction = async () => {
 
     const body = JSON.stringify({
       prompt: prompt,
-      frequency_penalty: 0,
-      n_predict: 400,
-      presence_penalty: 0,
-      repeat_last_n: 256,
-      repeat_penalty: 1.18,
-      stop: ["</s>", "llama:", "User:"],
-      temperature: 1.4,
-      tfs_z: 1,
-      top_k: 40,
-      top_p: 0.5,
-      typical_p: 1,
+      temperature: 10 + Math.random(),
     });
 
     const response = await fetch(url, { method: "POST", body: body });
@@ -25,7 +15,8 @@ export const getNextCallToAction = async () => {
     const completion = JSON.parse(data.content);
 
     if (Object.hasOwn(completion, "call")) {
-      return completion.call;
+      if(completion.call.length < 50)
+        return completion.call;
     }
   } catch (error) {
     console.log(error);
