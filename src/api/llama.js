@@ -15,8 +15,7 @@ export const getNextCallToAction = async () => {
     const completion = JSON.parse(data.content);
 
     if (Object.hasOwn(completion, "call")) {
-      if(completion.call.length < 50)
-        return completion.call;
+      if (completion.call.length < 50) return completion.call;
     }
   } catch (error) {
     console.log(error);

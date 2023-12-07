@@ -9,16 +9,89 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Noto+Color+Emoji&family=Public+Sans:wght@100;400;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300&family=JetBrains+Mono:wght@100;400;700&family=Noto+Color+Emoji&family=Public+Sans:wght@100;400;700&family=Rubik+Mono+One&display=swap"
     rel="stylesheet">
 </head>
 
-<body style="font-family: 'Public Sans', 'Noto Color Emoji';">
+<body style="font-family: 'Public Sans', 'Noto Color Emoji'; background-color: #000;">
+
+  <div class='stars'></div>
+  <div class='twinkling'></div>
+  <div class='clouds'></div>
+
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
   <style>
+
+    * {
+      transition: all 0.2s ease-in-out;
+    }
+
     .font-mono {
-      font-family: 'JetBrains Mono', 'Noto Color Emoji';
+      font-family: 'Azeret Mono', 'Noto Color Emoji';
+    }
+
+    .font-thick {
+      font-family: 'Rubik Mono One', 'Noto Color Emoji';
+    }
+
+    #root {
+      z-index: 30;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .stars,
+    .twinkling,
+    .clouds {
+      position: absolute;
+      display: block;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .stars {
+      z-index: 0;
+      background: #000 url('https://i.imgur.com/YKY28eT.png') repeat top center;
+    }
+
+    .twinkling {
+      z-index: 1;
+      background: transparent url('https://i.imgur.com/XYMF4ca.png') repeat top center;
+      animation: move-twink-back 200s linear infinite;
+    }
+
+    .clouds {
+      z-index: 2;
+      background: transparent url('https://i.imgur.com/mHbScrQ.png') repeat top center;
+      animation: move-clouds-back 200s linear infinite;
+    }
+
+    @keyframes move-twink-back {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: -10000px 5000px;
+      }
+    }
+
+    @keyframes move-clouds-back {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 10000px 0;
+      }
     }
   </style>
 </body>

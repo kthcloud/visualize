@@ -16,11 +16,6 @@ function App() {
   const [overviewData, _setOverviewData] = useState([]);
   const [lastFetched, setLastFetched] = useState("");
 
-  // Capacities
-  const [cpuCapacities, setCpuCapacities] = useState([]);
-  const [ramCapacities, setRamCapacities] = useState([]);
-  const [gpuCapacities, setGpuCapacities] = useState([]);
-
   //Stats
   const [podCount, setPodCount] = useState(0);
 
@@ -42,6 +37,9 @@ function App() {
 
   // users
   const [users, setUsers] = useState(0);
+
+  // GUI State
+  const [selectedCard, setSelectedCard] = useState(null);
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -138,6 +136,7 @@ function App() {
 
     if (status.jobs[0].createdAt.$date > lastCreated) {
       setAnimationNumber(Math.floor(Math.random() * 48 + 1));
+      setSelectedCard(null);
       setAnimation(true);
       let player = document.getElementById("player");
       player.play();
@@ -147,16 +146,6 @@ function App() {
     }
     setLastCreated(status.jobs[0].createdAt.$date);
 
-    setCpuCapacities(
-      status.status[0].status.hosts
-        .map((host) => {
-          return {
-            x: host.name,
-            y: host.cpu.load.cores.length,
-          };
-        })
-        .filter((host) => host.y > 0)
-    );
     setOverviewData(status.status);
 
     setPodCount(status.stats[0].stats.k8s.podCount);
@@ -164,28 +153,6 @@ function App() {
     setRam(status.capacities[0].capacities.ram.total);
     setCpuCores(status.capacities[0].capacities.cpuCore.total);
     setGpus(status.capacities[0].capacities.gpu.total);
-
-    setRamCapacities(
-      status.capacities[0].capacities.hosts
-        .map((host) => {
-          return {
-            x: host.name,
-            y: host.ram.total,
-          };
-        })
-        .filter((host) => host.y > 0)
-    );
-
-    setGpuCapacities(
-      status.capacities[0].capacities.hosts
-        .map((host) => {
-          return {
-            x: host.name,
-            y: host.gpu ? host.gpu.count : 0,
-          };
-        })
-        .filter((host) => host.y > 0)
-    );
   };
 
   useInterval(() => {
@@ -198,10 +165,10 @@ function App() {
 
   useInterval(async () => {
     const call = await getNextCallToAction();
-    if (call) {
-      setCallToAction(call);
+    if (call?.length <= 30) {
+      setCallToAction(call.replace(/kthcloud/gi, "kthcloud"));
     }
-  }, 5000);
+  }, 3000);
 
   const renderName = (event) => {
     if (event.args.name) return event.args.name;
@@ -226,17 +193,56 @@ function App() {
       .replace("deployment", "Deployment");
   };
 
+  const getTextSize = (text) => {
+    console.log(text.length);
+    if (text.length > 30) return "text-3xl";
+    if (text.length > 20) return "text-4xl";
+    if (text.length > 15) return "text-5xl";
+    if (text.length > 10) return "text-6xl";
+    if (text.length > 5) return "text-7xl";
+    return "text-8xl";
+  };
+
+  const activateCard = (card) => {
+    setSelectedCard(card);
+    setTimeout(() => {
+      setSelectedCard(null);
+    }, 5000);
+  };
+
+  const shouldRenderCard = (card) => {
+    if (card === selectedCard) return true;
+
+    if (card === "capacities" && selectedCard === "events") return true;
+
+    if (card === "events" && selectedCard === "load") return false;
+
+    if (card === "status" && selectedCard === "event") return false;
+    if (card === "status" && selectedCard === "load") return true;
+
+    if (selectedCard === null) return true;
+
+    return false;
+  };
   return (
-    <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden bg-black p-5">
-      <div className="col-span-4 p-5 flex flex-row justify-around items-center max-h-40 bg-[#e1f3fc] rounded-lg">
-        {!animation && <img src={reactLogo} className="w-96" />}
-        <b className="text-4xl text-mono">
-          {!animation
-            ? lastFetched
-            : jobs.length > 0
-            ? abbrFix("NEW JOB ALERT!!!1 " + sentenceCase(jobs[0].type))
-            : lastFetched}
-        </b>
+    <div className="grid grid-cols-4 gap-5 h-screen w-screen overflow-hidden p-5">
+      <div className="col-span-4 p-5 flex flex-row justify-around items-center h-30 bg-slate-900 bg-opacity-50 border-2 border-slate-900 rounded-md text-white font-mono">
+        {animation ? (
+          <>
+            <img src={reactLogo} className="w-96 opacity-0" />
+            <b className="text-4xl font-thick animate-pulse">
+              <span className="opacity-50 pr-10">NEW JOB ALERT!</span>{" "}
+              <span>{abbrFix(sentenceCase(jobs[0].type))}</span>
+            </b>
+            <img src={reactLogo} className="w-96 opacity-0" />
+          </>
+        ) : (
+          <>
+            <img src={reactLogo} className="w-96" />
+            <b className="text-4xl text-mono">{lastFetched}</b>
+          </>
+        )}
+
         <audio id="player">
           <source src="/swoosh.mp3" type="audio/mp3" />
         </audio>
@@ -246,47 +252,59 @@ function App() {
         <div className="col-span-3 row-span-2">
           <img
             src={"/animations/" + animationNumber + ".gif"}
-            className="w-full h-full"
+            className="w-full h-full rounded-md border-2 border-slate-900"
           />
         </div>
       )}
 
-      {!animation && (
+      {!animation && shouldRenderCard("capacities") && (
         <div className="flex flex-col gap-5 justify-between">
           <Card>
             <div className="flex flex-row justify-between items-center px-5">
               <Iconify icon="octicon:container-16" className="text-5xl mr-5" />
               <span className="text-3xl font-mono mt-1">
-                {podCount} Containers
+                <span className="font-bold">{podCount}</span> containers
               </span>
             </div>
           </Card>
           <Card>
             <div className="flex flex-row justify-between items-center px-5">
               <Iconify icon="bi:gpu-card" className="text-5xl mr-5" />
-              <span className="text-3xl font-mono mt-1">{gpus} GPUs</span>
+              <span className="text-3xl font-mono mt-1">
+                <span className="font-bold">{gpus}</span> GPU
+              </span>
             </div>
           </Card>
           <Card>
             <div className="flex flex-row justify-between items-center px-5">
               <Iconify icon="uil:processor" className="text-5xl mr-5" />
               <span className="text-3xl font-mono mt-1">
-                {cpuCores} CPU cores
+                <span className="font-bold">{cpuCores}</span> cores
               </span>
             </div>
           </Card>
           <Card>
             <div className="flex flex-row justify-between items-center px-5">
               <Iconify icon="bi:memory" className="text-5xl mr-5" />
-              <span className="text-3xl font-mono mt-1">{ram} GB RAM</span>
+              <span className="text-3xl font-mono mt-1">
+                <span className="font-bold">{ram}</span> GB RAM
+              </span>
             </div>
           </Card>
         </div>
       )}
 
       {!animation && (
-        <div className="col-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-evenly">
-          <h1 className="text-xl font-mono mb-3">Load</h1>
+        <div
+          className={
+            "col-span-2 bg-slate-900 bg-opacity-50 rounded-md border-2 border-slate-900 text-white p-5 flex flex-col justify-between" +
+            (selectedCard === "load" ? " col-span-4 !border-purple-500" : "")
+          }
+          onClick={() => {
+            activateCard("load");
+          }}
+        >
+          <h1 className="text-3xl font-thick mb-3">Load</h1>
           <Chart
             type="line"
             series={overviewData}
@@ -346,62 +364,82 @@ function App() {
                 },
               },
             }}
-            height="300px"
+            height="375px"
             width="100%"
           />
         </div>
       )}
 
-      <div className="row-span-2 bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 overflow-hidden">
-        <h1 className="text-xl font-mono mb-3">Latest events</h1>
-        <div className="flex flex-col justify-between gap-5">
-          {Array.isArray(jobs) &&
-            jobs.map((event, index) => (
-              <div
-                className={
-                  "flex items-center px-4 py-2  rounded-md" +
-                  (event.status === "completed"
-                    ? " bg-slate-700 opacity-100"
-                    : " bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-pulse")
-                }
-                key={index}
-              >
-                <Iconify
-                  icon={renderIcon(event)}
+      {shouldRenderCard("events") && (
+        <div
+          className={
+            "bg-opacity-50 bg-slate-900  rounded-md border-2 border-slate-900 text-white p-5 overflow-hidden " +
+            (animation ? "row-span-2" : "") +
+            (selectedCard === "events" ? "row-span-2 !border-purple-500" : "")
+          }
+          onClick={() => {
+            activateCard("events");
+          }}
+        >
+          <h1 className="text-3xl font-thick mb-3">Events</h1>
+          <div
+            className={
+              "flex flex-col justify-between" +
+              (!selectedCard && !animation ? " mt-5 gap-7" : " gap-4")
+            }
+          >
+            {Array.isArray(jobs) &&
+              jobs.map((event, index) => (
+                <div
                   className={
-                    "text-2xl mr-5" +
-                    (event.status === "completed" ? " text-green-500" : "") +
-                    (event.status !== "completed" ? " animate-ping" : "")
+                    "flex flex-row items-center justify-start px-4 py-1 rounded-md border-2 border-slate-900" +
+                    (event.status === "completed"
+                      ? " bg-slate-800 bg-opacity-50"
+                      : " bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-pulse")
                   }
-                />
+                  style={
+                    selectedCard === "events" || animation
+                      ? { opacity: 1 }
+                      : { opacity: 1 - index * 0.25 }
+                  }
+                  key={index}
+                >
+                  <Iconify
+                    icon={renderIcon(event)}
+                    className={
+                      "text-2xl mr-5" +
+                      (event.status === "completed" ? " text-green-500" : "") +
+                      (event.status !== "completed" ? " animate-ping" : "")
+                    }
+                  />
 
-                <div className="flex flex-col justify-between items-start">
-                  <span className="text-sm font-mono mt-1">
-                    {renderName(event)}
-                  </span>
+                  <div className="flex flex-col justify-between items-start gap-1 mb-1">
+                    <span className="text-sm font-mono">
+                      {renderName(event)}
+                    </span>
 
-                  <span className="text-sm font-mono mt-1">
-                    {new Date(event.createdAt.$date).toLocaleTimeString(
-                      "sv-SE"
-                    )}
-                  </span>
-                  <span className="text-sm font-mono mt-1">
-                    {abbrFix(sentenceCase(event.type))}
-                  </span>
+                    <span className="text-sm font-mono">
+                      {new Date(event.createdAt.$date).toLocaleTimeString(
+                        "sv-SE"
+                      )}
+                    </span>
+                    <span className="text-sm font-mono">
+                      {abbrFix(sentenceCase(event.type))}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
-      </div>
-
-      {!animation && (
+      )}
+      {!animation && shouldRenderCard("status") && (
         <Card>
-          <h1 className="text-xl font-mono mb-3">Server status</h1>
+          <h1 className="text-3xl font-thick mb-3">Status</h1>
           <Chart
             type="heatmap"
             series={statusData}
             height="300px"
-            width="100%"
+            width="450px"
             options={{
               plotOptions: {
                 heatmap: {
@@ -498,21 +536,31 @@ function App() {
       )}
 
       {!animation && (
-        <div className="bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-between py-10 pt-20">
-          <span className="text-4xl animate-bounce">{callToAction}</span>
+        <div className="bg-slate-900 bg-opacity-50 rounded-md border-2 border-slate-900 text-white p-5 flex flex-col justify-between items-center py-5">
+          <img src={qr} className="w-72 rounded-md" />
 
-          <span className="text-2xl">
-            <span className="font-mono text-4xl font-bold">{users}</span> <br />
-            users already deploying on kthcloud
+          <span className="text-4xl text-underline">
+            <span className="font-thin">Go to</span>{" "}
+            <u className="font-semibold">cloud.cbh.kth.se</u>
           </span>
         </div>
       )}
 
       {!animation && (
-        <div className="bg-slate-900 rounded-md border-8 border-slate-700 text-white p-5 flex flex-col justify-between items-center py-10">
-          <img src={qr} className="w-60" />
-          <span className="text-4xl text-underline">
-            Go to <u>cloud.cbh.kth.se</u>
+        <div className="col-span-2 bg-slate-900 bg-opacity-50 rounded-md border-2 border-slate-900 text-white p-5 flex flex-col justify-between items-center py-5 ">
+          <span className="font-thick" style={{ fontSize: "1.85rem" }}>
+            <span className="font-thick text-9xl">{users}</span>
+            <br />
+            users already deploying on kthcloud
+          </span>
+
+          <span
+            className={
+              "animate-bounce whitespace-nowrap font-thick " +
+              getTextSize(callToAction)
+            }
+          >
+            {callToAction}
           </span>
         </div>
       )}
