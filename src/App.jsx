@@ -34,6 +34,7 @@ function App() {
 
   // LLama Call to action
   const [callToAction, setCallToAction] = useState("Deploy now!");
+  const [changeTransiton, setChangeTransition] = useState(false);
 
   // users
   const [users, setUsers] = useState(0);
@@ -166,9 +167,15 @@ function App() {
   useInterval(async () => {
     const call = await getNextCallToAction();
     if (call?.length <= 30) {
-      setCallToAction(call.replace(/kthcloud/gi, "kthcloud"));
+      setChangeTransition(true);
+      setTimeout(() => {
+        setCallToAction(call.replace(/kthcloud/gi, "kthcloud"));
+      }, 200);
+      setTimeout(() => {
+        setChangeTransition(false);
+      }, 400);
     }
-  }, 3000);
+  }, 5000);
 
   const renderName = (event) => {
     if (event.args.name) return event.args.name;
@@ -557,7 +564,8 @@ function App() {
           <span
             className={
               "animate-bounce whitespace-nowrap font-thick " +
-              getTextSize(callToAction)
+              getTextSize(callToAction) +
+              (changeTransiton ? " opacity-0" : "")
             }
           >
             {callToAction}
