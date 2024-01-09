@@ -118,7 +118,7 @@ function App() {
     let statusData = status.status[0].status.hosts.map((host) => {
       const gpuTemp = host.gpu ? host.gpu.temp[0].main : null;
       return {
-        name: host.name,
+        name: host.displayName,
         data: [
           host.cpu.temp.main,
           host.cpu.load.main,
