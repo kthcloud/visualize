@@ -1,3 +1,3 @@
-# 📊 kthcloud/visualize-frontend
+# 📊 kthcloud/visualize
 
-A frontend for the visualize project that fetches live data from the [visualize-backend](https://github.com/kthcloud/visualize-backend) and displays it as a dashboard. 
+A React dashboard for visualizing the project, fetches live data from the [visualize-api](https://github.com/kthcloud/visualize-api) and displays it as a dashboard. 
