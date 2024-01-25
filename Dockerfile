@@ -1,14 +1,11 @@
-FROM node as build
+FROM docker.io/oven/bun:latest as build
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
-ENV CHOKIDAR_USEPOLLING=true
 
 COPY ./package.json /app/
-COPY ./package-lock.json /app/
 COPY . /app
-RUN npm ci --production
-RUN npm install
-RUN npm run build
+
+RUN bun install
+RUN bun run build
 
 # stage 2 - build the final image and copy the react build files
 FROM nginx
