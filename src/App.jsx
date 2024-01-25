@@ -41,6 +41,8 @@ function App() {
 
   // GUI State
   const [selectedCard, setSelectedCard] = useState(null);
+  const [firstLoad, setFirstLoad] = useState(true);
+
 
   const setOverviewData = (data) => {
     let cpuTemp = [];
@@ -115,7 +117,7 @@ function App() {
   const getStatusData = async () => {
     const status = await getStatus();
 
-    let statusData = status.status[0].status.hosts.map((host) => {
+    let statusSeries = status.status[0].status.hosts.map((host) => {
       const gpuTemp = host.gpu ? host.gpu.temp[0].main : null;
       return {
         name: host.displayName,
@@ -128,14 +130,14 @@ function App() {
       };
     });
 
-    setStatusData(statusData);
+    setStatusData(statusSeries);
 
     let date = new Date(status.date);
     setLastFetched(date.toLocaleString("sv-SE"));
 
     setJobs(status.jobs);
 
-    if (status.jobs[0].createdAt.$date > lastCreated) {
+    if (status.jobs[0].createdAt.$date > lastCreated && !firstLoad) {
       setAnimationNumber(Math.floor(Math.random() * 48 + 1));
       setSelectedCard(null);
       setAnimation(true);
@@ -163,6 +165,16 @@ function App() {
   useInterval(async () => {
     setUsers(await getUsers());
   }, 1000);
+
+  // Reload window every hour, to prevent memory leak
+  const reloadWindow  = () => {
+    if (!firstLoad) {
+      window.location.reload();
+    }
+    setFirstLoad(false);
+  };
+
+  useInterval(reloadWindow, 60*60*1000);
 
   useInterval(async () => {
     const call = await getNextCallToAction();
@@ -201,7 +213,6 @@ function App() {
   };
 
   const getTextSize = (text) => {
-    console.log(text.length);
     if (text.length > 30) return "text-3xl";
     if (text.length > 20) return "text-4xl";
     if (text.length > 15) return "text-5xl";
