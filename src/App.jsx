@@ -43,7 +43,6 @@ function App() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [firstLoad, setFirstLoad] = useState(true);
 
-
   const setOverviewData = (data) => {
     let cpuTemp = [];
     let cpuLoad = [];
@@ -167,14 +166,14 @@ function App() {
   }, 1000);
 
   // Reload window every hour, to prevent memory leak
-  const reloadWindow  = () => {
+  const reloadWindow = () => {
     if (!firstLoad) {
       window.location.reload();
     }
     setFirstLoad(false);
   };
 
-  useInterval(reloadWindow, 60*60*1000);
+  useInterval(reloadWindow, 60 * 60 * 1000);
 
   useInterval(async () => {
     const call = await getNextCallToAction();
@@ -190,13 +189,14 @@ function App() {
   }, 5000);
 
   const renderName = (event) => {
-    if (event.args.name) return event.args.name;
-    if (event.args.params && event.args.params.name)
-      return event.args.params.name;
+    if (event?.args?.name) return event.args.name;
+    if (event?.args?.params && event.args.params.name)
+      return event?.args?.params.name;
   };
 
   const renderIcon = (event) => {
-    if (event.status === "completed") return "octicon:check-16";
+    if (event.status === "finished" || event.status === "completed")
+      return "octicon:check-16";
     if (event.status === "failed") return "octicon:x-16";
     if (event.type.toLowerCase().includes("creat")) return "tabler:crane";
     if (event.type.toLowerCase().includes("delet")) return "mdi:nuke";
@@ -411,7 +411,7 @@ function App() {
                 <div
                   className={
                     "flex flex-row items-center justify-start px-4 py-1 rounded-md border-2 border-slate-900" +
-                    (event.status === "completed"
+                    (event.status === "completed" || event.status === "finished"
                       ? " bg-slate-800 bg-opacity-50"
                       : " bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-pulse")
                   }
@@ -426,8 +426,14 @@ function App() {
                     icon={renderIcon(event)}
                     className={
                       "text-2xl mr-5" +
-                      (event.status === "completed" ? " text-green-500" : "") +
-                      (event.status !== "completed" ? " animate-ping" : "")
+                      (event.status === "completed" ||
+                      event.status === "finished"
+                        ? " text-green-500"
+                        : "") +
+                      (event.status !== "completed" &&
+                      event.status !== "finished"
+                        ? " animate-ping"
+                        : "")
                     }
                   />
 
@@ -437,9 +443,7 @@ function App() {
                     </span>
 
                     <span className="text-sm font-mono">
-                      {new Date(event.createdAt.$date).toLocaleTimeString(
-                        "sv-SE"
-                      )}
+                      {new Date(event.createdAt).toLocaleTimeString("sv-SE")}
                     </span>
                     <span className="text-sm font-mono">
                       {abbrFix(sentenceCase(event.type))}
