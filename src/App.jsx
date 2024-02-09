@@ -1,5 +1,5 @@
 import { useState } from "react";
-import reactLogo from "./assets/kthcloud.svg";
+import reactLogo from "./assets/logo_kth_dark.png";
 import qr from "./assets/qr.png";
 import { Card } from "./components/Card";
 import useInterval from "./hooks/useInterval";

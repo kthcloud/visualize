@@ -15,14 +15,25 @@
 
 <body style="font-family: 'Public Sans', 'Noto Color Emoji'; background-color: #000;">
 
+
+  <canvas id="canvas3d"
+    style="height: 100vh; position: absolute; top: 0; left: 0; z-index: 9000; background: transparent"></canvas>
+  <canvas id="canvas-scaler" style="display: none;"></canvas>
+
   <div class='stars'></div>
   <div class='twinkling'></div>
   <div class='clouds'></div>
 
   <div id="root"></div>
+
+  <!-- curved-->
+
+  <script type="module" src="html2canvas.js"></script>
+  <script type="module" src="script.js"></script>
+
+  <!-- React -->
   <script type="module" src="/src/main.jsx"></script>
   <style>
-
     * {
       transition: all 0.2s ease-in-out;
     }
@@ -42,6 +53,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
+      background: black;
     }
 
     .stars,
