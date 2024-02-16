@@ -585,6 +585,8 @@ function App() {
           >
             {callToAction}
           </span>
+
+          <small>kthcloud is supported by KTH CBH, EU Erasmus+ program, KTH Digitalisation Platform and KTH PDC via CoS</small>
         </div>
       )}
     </div>
