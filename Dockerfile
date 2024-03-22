@@ -4,6 +4,8 @@ WORKDIR /app
 COPY ./package.json /app/
 COPY . /app
 
+ENV NODE_ENV="production"
+
 RUN bun install
 RUN bun run build
 
