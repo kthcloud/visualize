@@ -1,12 +1,15 @@
 export const getUsers = async () => {
-  const res = await fetch(
-    "https://prometheus.cloud.cbh.kth.se/api/v1/query?query=go_deploy_users_total",
-    {
-      method: "GET",
-    }
-  );
+  const res = await fetch("https://api.cloud.cbh.kth.se/deploy/v1/metrics", {
+    method: "GET",
+  });
 
-  let json = await res.json();
-  let users = json.data.result[0].value[1];
+  const raw = await res.text();
+  let users = 0;
+  raw.split("\n").forEach((line) => {
+    if (line.startsWith("go_deploy_users_total")) {
+      users = line.split(" ")[1].trim();
+    }
+  });
+
   return users;
 };
