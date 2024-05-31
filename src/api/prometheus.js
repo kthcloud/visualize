@@ -1,5 +1,5 @@
 export const getUsers = async () => {
-  const res = await fetch("https://api.cloud.cbh.kth.se/deploy/v1/metrics", {
+  const res = await fetch("https://api.cloud.cbh.kth.se/deploy/v2/metrics", {
     method: "GET",
   });
 
