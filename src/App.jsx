@@ -1,5 +1,6 @@
 import { useState } from "react";
-import reactLogo from "./assets/kthcloud.svg";
+import kthcloudLogo from "./assets/kthcloud.svg";
+import cbhcloudLogo from "./assets/cbhcloud.svg";
 import qr from "./assets/qr.png";
 import { Card } from "./components/Card";
 import useInterval from "./hooks/useInterval";
@@ -9,6 +10,9 @@ import { getStatus } from "./api/visualize";
 import { sentenceCase } from "change-case";
 import { getNextCallToAction } from "./api/llama";
 import { getUsers } from "./api/prometheus";
+
+const isCBH = window.location.hostname.endsWith("cbh.kth.se");
+const reactLogo = isCBH ? cbhcloudLogo : kthcloudLogo;
 
 function App() {
   //Status
