@@ -1,4 +1,4 @@
-export const getUsers = async () => {
+export async function getUsers(): Promise<number>{
   const res = await fetch("https://api.cloud.cbh.kth.se/deploy/v2/metrics", {
     method: "GET",
   });
@@ -7,7 +7,7 @@ export const getUsers = async () => {
   let users = 0;
   raw.split("\n").forEach((line) => {
     if (line.startsWith("go_deploy_users_total")) {
-      users = line.split(" ")[1].trim();
+      users = Number(line.split(" ")[1].trim());
     }
   });
 

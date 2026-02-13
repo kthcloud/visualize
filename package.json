@@ -5,30 +5,39 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "dev-scan": "vite & react-scan localhost:5173",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "format": "prettier --write .",
+    "format-check": "prettier --check ."
   },
   "dependencies": {
     "@iconify/react": "^4.1.1",
-    "apexcharts": "^3.45.2",
-    "change-case": "^5.4.2",
-    "react": "^18.2.0",
-    "react-apexcharts": "^1.4.1",
-    "react-dom": "^18.2.0"
+    "apexcharts": "^3.54.1",
+    "change-case": "^5.4.4",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-apexcharts": "^1.9.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.4.33",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
     "prettier": "3.2.4",
-    "tailwindcss": "^3.4.1",
-    "vite": "^5.0.12"
+    "tailwindcss": "^3.4.19",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^24.10.13",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.55.0",
+    "vite": "^7.3.1",
+    "react-scan": "^0.4.3"
   }
 }
